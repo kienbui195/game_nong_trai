@@ -3,9 +3,9 @@
 http://nongtrai.baodom.xyz {
 	encode gzip zstd
 	handle /api/* {
-		reverse_proxy 127.0.0.1:3109
+		reverse_proxy 127.0.0.1:47106
 	}
 	handle {
-		reverse_proxy 127.0.0.1:3110
+		reverse_proxy 127.0.0.1:47107
 	}
 }
