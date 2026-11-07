@@ -288,6 +288,14 @@ function stepPond(p: PondState, t1: number) {
   if (!p.sick && p.health < ANIMAL_HEALTH.sickBelow) p.sick = true;
 }
 
+/** Tính bù + chốt các việc theo giờ (hết giờ câu hỏi, làm mới việc, qua ngày). Server gọi trước khi lưu khi chỉ mở game. */
+export function advance(f: Farm, now: number, ctx: ActCtx = {}): Farm {
+  const g = clone(f);
+  simulate(g, now, ctx);
+  settle(g, now, ctx);
+  return g;
+}
+
 // ---------------------------------------------------------------- việc làm thêm
 
 function genOffers(f: Farm, ctx: ActCtx): JobOffer[] {

@@ -1,0 +1,23 @@
+# MySQL chạy thử ở laptop cho Nông Trại Xu (chỉ dev/test, không dùng trên VPS).
+# Bật: docker compose -f dev/compose.yaml up -d  ·  cổng 127.0.0.1:33073, root/dev, có sẵn database nongtrai và nongtrai_test
+name: nongtrai-dev
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: nongtrai-dev-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: dev
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:33073:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pdev"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+volumes:
+  mysql-data:

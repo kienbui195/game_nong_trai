@@ -11,8 +11,8 @@ export interface Rect {
   h: number;
 }
 
-export const HOUSE: Rect = { x: 1, y: 1, w: 3, h: 3 };
-export const MARKET: Rect = { x: 8, y: 1, w: 3, h: 3 };
+export const HOUSE_RECT: Rect = { x: 1, y: 1, w: 3, h: 3 };
+export const MARKET_RECT: Rect = { x: 8, y: 1, w: 3, h: 3 };
 
 /** 30 chỗ ô đất: khối 6 cột × 5 hàng, mở dần theo thứ tự. */
 export const PLOT_SLOTS: { x: number; y: number }[] = Array.from({ length: EXPANSION.plotsMax }, (_, i) => ({ x: 3 + (i % 6), y: 6 + Math.floor(i / 6) }));
