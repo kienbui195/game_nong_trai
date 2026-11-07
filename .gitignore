@@ -1,0 +1,9 @@
+.obsidian/
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
