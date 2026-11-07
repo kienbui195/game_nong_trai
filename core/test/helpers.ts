@@ -1,4 +1,4 @@
-import { act, catchUp, newFarm, view } from '../src/engine';
+import { act, advance, catchUp, newFarm, view } from '../src/engine';
 import type { ActCtx, Action, Farm, JobQuestion } from '../src/types';
 
 export const T0 = Date.UTC(2026, 10, 1, 0, 0, 0);
@@ -20,11 +20,21 @@ export function ok(f: Farm, a: Action, now: number, ctx: ActCtx = NP): Farm {
   return r.farm;
 }
 
-/** Làm thao tác, bắt buộc lỗi đúng mã; trả về nông trại (không đổi). */
+/** Phần người chơi thấy được của nông trại: dùng để kiểm "bị từ chối thì không đổi gì". */
+const visible = (f: Farm) => ({ coins: f.coins, stamina: f.stamina, sleep: f.sleep, plots: f.plots, buildings: f.buildings, animals: f.animals, ponds: f.ponds, inventory: f.inventory, market: f.market, offers: f.job.offers, active: f.job.active, taken: f.job.taken, rerollCost: f.job.rerollCost });
+
+/**
+ * Làm thao tác, bắt buộc lỗi đúng mã, có thông báo cho người chơi,
+ * và nông trại giữ nguyên như chỉ tính bù tới `now` (không làm nửa chừng).
+ */
 export function fail(f: Farm, a: Action, now: number, code: string, ctx: ActCtx = NP) {
   const r = act(f, a, now, ctx);
   if (!r.error) throw new Error(`${a.type} lẽ ra phải lỗi ${code}`);
   if (r.error.code !== code) throw new Error(`${a.type}: mong ${code}, nhận ${r.error.code}`);
+  if (!r.error.message || r.error.message.length < 5) throw new Error(`${a.type}: lỗi ${code} thiếu thông báo`);
+  const before = JSON.stringify(visible(advance(f, now, ctx)));
+  const after = JSON.stringify(visible(r.farm));
+  if (before !== after) throw new Error(`${a.type}: bị từ chối (${code}) nhưng nông trại đã đổi`);
   return r;
 }
 

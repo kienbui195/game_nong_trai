@@ -98,10 +98,18 @@ describe('US-01 tài khoản', () => {
   });
 
   test('AC-01.6 biên mật khẩu 5/6 ký tự, tên 24/25 ký tự', async () => {
-    assert.equal((await call('POST', '/api/auth/register', { displayName: 'An', password: '12345' })).status, 400);
+    const users = async () => Number(((await pool.query('SELECT COUNT(*) AS n FROM users')) as any)[0][0].n);
+    const n0 = await users();
+    const pw5 = await call('POST', '/api/auth/register', { displayName: 'An', password: '12345' });
+    assert.equal(pw5.status, 400);
+    assert.match(pw5.body.message, /Mật khẩu/);
+    assert.equal(await users(), n0, 'mật khẩu 5 ký tự không được tạo tài khoản');
     assert.equal((await call('POST', '/api/auth/register', { displayName: 'An', password: '123456' })).status, 201);
     assert.equal((await call('POST', '/api/auth/register', { displayName: 'x'.repeat(24), password: '123456' })).status, 201);
-    assert.equal((await call('POST', '/api/auth/register', { displayName: 'x'.repeat(25), password: '123456' })).status, 400);
+    const name25 = await call('POST', '/api/auth/register', { displayName: 'x'.repeat(25), password: '123456' });
+    assert.equal(name25.status, 400);
+    assert.match(name25.body.message, /Tên hiển thị/);
+    assert.equal(await users(), n0 + 2);
   });
 });
 

@@ -214,12 +214,13 @@ describe('US-07 chợ', () => {
     const f = give(fresh(), 'crop:xoai', 3);
     const p = marketPrice(f, 'crop:xoai', T0, false);
     fail(f, { type: 'sell', itemId: 'crop:xoai', n: 4, hq: false, expected: p }, T0, 'not_enough');
-    const t = T0 + 4 * H;
+    // tìm kỳ 4 giờ đầu tiên có giá khác (giá theo seed nên tất định); không được bỏ qua nhánh "giá đã đổi"
+    let t = T0;
+    for (let k = 1; k <= 20 && marketPrice(f, 'crop:xoai', t, false) === p; k++) t = T0 + k * 4 * H;
     const p2 = marketPrice(f, 'crop:xoai', t, false);
-    if (p2 !== p) {
-      const r = fail(f, { type: 'sell', itemId: 'crop:xoai', n: 3, hq: false, expected: p }, t, 'price_changed');
-      expect(r.error!.data?.price).toBe(p2);
-    }
+    expect(p2).not.toBe(p);
+    const r = fail(f, { type: 'sell', itemId: 'crop:xoai', n: 3, hq: false, expected: p }, t, 'price_changed');
+    expect(r.error!.data?.price).toBe(p2);
     expect(ok(f, { type: 'sell', itemId: 'crop:xoai', n: 3, hq: false, expected: p2 }, t).inventory['crop:xoai'].n).toBe(0);
   });
 });

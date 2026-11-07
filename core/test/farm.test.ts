@@ -239,6 +239,32 @@ describe('US-12 an toàn dữ liệu', () => {
     expect(many).toEqual(once);
   });
 
+  test('BR3 mã lạ trong thao tác (tên thuộc tính JS, không phải chuỗi) bị từ chối, nông trại không hỏng', () => {
+    let f = give(fresh(), 'fert:good', 1);
+    f.coins = 99999;
+    f = ok(f, { type: 'expand', what: 'pond' }, T0);
+    f = ok(f, { type: 'expand', what: 'coop' }, T0);
+    f = give(ok(give(f, 'seed:rau_cai', 1), { type: 'plant', plotId: 0, cropId: 'rau_cai' }, T0), 'seed:rau_cai', 1);
+    const pond = f.ponds[0].buildingId;
+    const coop = f.buildings.find((b) => b.type === 'coop')!.id;
+    const bad = ['__proto__', 'constructor', 'toString', 'hasOwnProperty'];
+    for (const k of bad) {
+      fail(f, { type: 'buyFish', species: k, n: 1, buildingId: pond } as never, T0, 'bad_input');
+      fail(f, { type: 'buyAnimal', species: k, buildingId: coop } as never, T0, 'bad_input');
+      fail(f, { type: 'plant', plotId: 1, cropId: k } as never, T0, 'bad_input');
+      fail(f, { type: 'fertilize', plotId: 0, fertilizer: k } as never, T0, 'bad_input');
+      fail(f, { type: 'buy', itemId: k, n: 1 } as never, T0, 'bad_input');
+      fail(f, { type: 'buy', itemId: `seed:${k}`, n: 1 } as never, T0, 'bad_input');
+      fail(f, { type: 'sell', itemId: k, n: 1, hq: false, expected: 1 } as never, T0, 'bad_input');
+      fail(f, { type: 'expand', what: k } as never, T0, 'bad_input');
+    }
+    for (const v of [1, null, {}, ['seed:rau_cai']]) {
+      fail(f, { type: 'buy', itemId: v, n: 1 } as never, T0, 'bad_input');
+      fail(f, { type: 'buyFish', species: v, n: 1, buildingId: pond } as never, T0, 'bad_input');
+    }
+    expect(() => vw(f, T0 + H)).not.toThrow();
+  });
+
   test('tính bù 60 ngày với nhiều thứ vẫn nhanh (< 200 ms)', () => {
     let f = newFarm(T0, 1);
     f.coins = 1e9;

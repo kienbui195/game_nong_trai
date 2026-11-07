@@ -31,6 +31,7 @@ import {
   type FertilizerId,
   type JobLevel,
   type Season,
+  table,
 } from './config';
 import { dayInSeason, dayNo, seasonAt, seasonEndsAt, seasonNo, yearNo } from './calendar';
 import { rand, randInt } from './rng';
@@ -356,7 +357,7 @@ export const SELLABLES: { id: string; base: number; season: Season | null }[] = 
   ...ANIMALS.map((a) => ({ id: `prod:${a.product}`, base: a.productPrice, season: null })),
   ...FISH.map((x) => ({ id: `fish:${x.id}`, base: x.sellPrice, season: null })),
 ];
-const SELLABLE_BY_ID = Object.fromEntries(SELLABLES.map((s) => [s.id, s]));
+const SELLABLE_BY_ID = table(SELLABLES.map((s) => [s.id, s] as const));
 
 const periodNo = (f: Farm, t: number) => Math.floor((t - f.createdAt) / MARKET_PERIOD_MS);
 const periodFactor = (f: Farm, item: string, p: number) => MARKET.minFactor + (MARKET.maxFactor - MARKET.minFactor) * rand(f.seed, 'mkt', item, p);
@@ -460,7 +461,11 @@ const intN = (n: unknown, lo: number, hi: number) => {
   return n as number;
 };
 
+/** Trường mã trong thao tác phải là chuỗi (thao tác đến thẳng từ máy người chơi). */
+const ID_FIELDS = ['itemId', 'species', 'cropId', 'fertilizer', 'what'] as const;
+
 function apply(f: Farm, a: Action, now: number, ctx: ActCtx) {
+  for (const k of ID_FIELDS) if (k in a && typeof (a as Record<string, unknown>)[k] !== 'string') fail('bad_input', 'Thao tác không hợp lệ.');
   const today = dayNo(f, now);
   switch (a.type) {
     case 'sleep':

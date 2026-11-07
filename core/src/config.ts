@@ -94,7 +94,10 @@ export const CROPS: CropDef[] = [
   c('quyt', 'Quýt', '🍊', 'winter', 'tree', 450, 5 * DAY, 5, 50, 1.5 * DAY),
   c('cam', 'Cam', '🍊', 'winter', 'tree', 550, 6 * DAY, 4, 80, 2 * DAY),
 ];
-export const CROP_BY_ID: Record<string, CropDef> = Object.fromEntries(CROPS.map((x) => [x.id, x]));
+/** Bảng tra theo mã người chơi gửi lên: không có prototype, nên "__proto__", "toString"… tra ra undefined. */
+export const table = <T>(entries: Iterable<readonly [string, T]>): Record<string, T> => Object.assign(Object.create(null) as Record<string, T>, Object.fromEntries(entries));
+
+export const CROP_BY_ID: Record<string, CropDef> = table(CROPS.map((x) => [x.id, x] as const));
 
 export type BuildingType = 'coop' | 'barn' | 'pond';
 export interface AnimalDef {
@@ -133,7 +136,7 @@ export const ANIMALS: AnimalDef[] = [
   a('bo', 'Bò', '🐄', 'barn', 1200, 72 * HOUR, 'sua_bo', 'Sữa bò', '🥛', 1, 24 * HOUR, 160),
   a('cuu', 'Cừu', '🐑', 'barn', 900, 72 * HOUR, 'long_cuu', 'Lông cừu', '🧶', 1, 72 * HOUR, 420),
 ];
-export const ANIMAL_BY_ID: Record<string, AnimalDef> = Object.fromEntries(ANIMALS.map((x) => [x.id, x]));
+export const ANIMAL_BY_ID: Record<string, AnimalDef> = table(ANIMALS.map((x) => [x.id, x] as const));
 
 export interface FishDef {
   id: string;
@@ -149,17 +152,17 @@ export const FISH: FishDef[] = [
   { id: 'loc', name: 'Cá lóc', emoji: '🐡', price: 60, matureMs: 60 * HOUR, sellPrice: 210 },
   { id: 'tram', name: 'Cá trắm', emoji: '🐋', price: 80, matureMs: 72 * HOUR, sellPrice: 280 },
 ];
-export const FISH_BY_ID: Record<string, FishDef> = Object.fromEntries(FISH.map((x) => [x.id, x]));
+export const FISH_BY_ID: Record<string, FishDef> = table(FISH.map((x) => [x.id, x] as const));
 
 export type FertilizerId = 'cheap' | 'normal' | 'good';
-export const FERTILIZERS: Record<FertilizerId, { name: string; price: number; speed: number; quality: number }> = {
+export const FERTILIZERS: Record<FertilizerId, { name: string; price: number; speed: number; quality: number }> = table(Object.entries({
   cheap: { name: 'Phân giá rẻ', price: 5, speed: 0.1, quality: 0.01 },
   normal: { name: 'Phân thường', price: 15, speed: 0.2, quality: 0.03 },
   good: { name: 'Phân loại tốt', price: 40, speed: 0.3, quality: 0.05 },
-};
+}));
 
 /** Đồ bán ở cửa hàng (giá cố định), ngoài hạt giống / cây con. */
-export const SUPPLIES: Record<string, { name: string; emoji: string; price: number }> = {
+export const SUPPLIES: Record<string, { name: string; emoji: string; price: number }> = table(Object.entries({
   'feed:poultry': { name: 'Thức ăn gia cầm', emoji: '🌾', price: 5 },
   'feed:livestock': { name: 'Thức ăn gia súc', emoji: '🌿', price: 15 },
   'feed:fish': { name: 'Thức ăn cá', emoji: '🦐', price: 20 },
@@ -170,7 +173,7 @@ export const SUPPLIES: Record<string, { name: string; emoji: string; price: numb
   'med:poultry': { name: 'Thuốc gia cầm', emoji: '💊', price: 40 },
   'med:livestock': { name: 'Thuốc gia súc', emoji: '💉', price: 120 },
   'med:fish': { name: 'Thuốc cá', emoji: '🧫', price: 60 },
-};
+}));
 
 export const CROP_HEALTH = {
   start: 80,
@@ -218,11 +221,11 @@ export const EXPANSION = {
   plotsPerBuy: 3,
   plotsMax: 30,
   plotFirstPrice: 300,
-  build: {
+  build: table(Object.entries({
     coop: { prices: [800, 2000], capacity: 6, upgradePrice: 1500, upgradeAdd: 6, label: 'Chuồng gia cầm' },
     barn: { prices: [2500, 5000], capacity: 4, upgradePrice: 4000, upgradeAdd: 4, label: 'Chuồng gia súc' },
     pond: { prices: [1500, 3000], capacity: 10, upgradePrice: 2500, upgradeAdd: 10, label: 'Ao cá' },
-  } as Record<BuildingType, { prices: number[]; capacity: number; upgradePrice: number; upgradeAdd: number; label: string }>,
+  })) as Record<BuildingType, { prices: number[]; capacity: number; upgradePrice: number; upgradeAdd: number; label: string }>,
 };
 
 export type JobLevel = 1 | 2 | 3;
