@@ -1,10 +1,14 @@
 import { SLEEP_MS_PER_POINT, STAMINA_MAX } from '@core';
+import { Button } from '@/components/ui/button';
+import { tokenUsername } from '@/lib/api';
 import { useFarm } from '@/lib/farm';
+import { useConfirm } from './Confirm';
 import { fmtLeft } from '@/lib/time';
 import { ActBtn, Note } from './ui';
 
 export function HousePanel({ openJobs }: { openJobs: () => void }) {
-  const { view, act } = useFarm();
+  const { view, act, onLogout } = useFarm();
+  const confirm = useConfirm();
   if (!view) return null;
   const full = view.stamina >= view.staminaMax;
   return (
@@ -29,6 +33,18 @@ export function HousePanel({ openJobs }: { openJobs: () => void }) {
       <ActBtn onClick={openJobs} testId="open-computer">
         💻 Máy tính — việc làm thêm
       </ActBtn>
+      <Button
+        variant="outline"
+        className="h-11 w-full justify-start px-3 text-[15px]"
+        data-testid="logout"
+        onClick={async () => {
+          const un = tokenUsername();
+          const body = `${un ? `Tên đăng nhập của bạn: ${un}. ` : ''}Nông trại vẫn lưu trên server, đăng nhập lại là chơi tiếp.`;
+          if (await confirm('Đăng xuất?', body, 'Đăng xuất')) onLogout();
+        }}
+      >
+        🚪 Đăng xuất
+      </Button>
     </div>
   );
 }

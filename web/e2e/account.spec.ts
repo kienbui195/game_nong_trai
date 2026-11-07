@@ -1,5 +1,5 @@
 // US-01 tài khoản, mở lại, mất kết nối (AC-01.1 – AC-01.6)
-import { H, MIN, advance, buy, closeSheet, coins, expect, openTile, register, reopen, stamina, test } from './helpers';
+import { H, MIN, advance, buy, closeSheet, coins, expect, openHouse, openTile, register, reopen, stamina, test } from './helpers';
 
 test('AC-01.1 đăng ký: cấp tên đăng nhập, nông trại mới 500 xu, 6 ô, thể lực 100, Xuân ngày 1', async ({ page }) => {
   const u = await register(page, 'Nguyễn Văn Nam');
@@ -100,4 +100,21 @@ test('AC-01.6 biên: mật khẩu 5 bị từ chối kèm lý do, 6 được; t�
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await register(page, 'An', '123456'); // 6 ký tự được
+});
+
+test('Đăng xuất (ngoài AC): nút trong Nhà, nhắc tên đăng nhập, về màn đăng nhập, đăng nhập lại thấy đúng nông trại', async ({ page }) => {
+  const u = await register(page);
+  const xu = await coins(page);
+  await openHouse(page);
+  await page.getByTestId('logout').click();
+  await expect(page.getByRole('dialog')).toContainText(`Tên đăng nhập của bạn: ${u.username}`);
+  await page.getByTestId('confirm-yes').click();
+  await expect(page.getByTestId('hud-coins')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('nongtrai_token'))).toBeNull();
+  await page.reload();
+  await page.getByRole('tab', { name: 'Đăng nhập' }).click();
+  await page.fill('#un', u.username);
+  await page.fill('#pw2', u.password);
+  await page.getByTestId('login').click();
+  await expect(page.getByTestId('hud-coins')).toContainText(xu.toLocaleString('vi-VN'));
 });

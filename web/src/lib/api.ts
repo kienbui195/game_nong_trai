@@ -23,6 +23,19 @@ export const setToken = (t: string | null) => {
   }
 };
 
+/** Tên đăng nhập đọc từ phiên (trường `un` của JWT), để nhắc người chơi trước khi đăng xuất */
+export const tokenUsername = (): string | null => {
+  try {
+    const part = getToken()?.split('.')[1];
+    if (!part) return null;
+    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/'));
+    const un = (JSON.parse(json) as { un?: unknown }).un;
+    return typeof un === 'string' ? un : null;
+  } catch {
+    return null;
+  }
+};
+
 export class ApiError extends Error {
   constructor(public status: number, message: string, public body?: unknown) {
     super(message);

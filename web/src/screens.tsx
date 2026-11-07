@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { SEASON_DAYS, STAMINA_MAX } from '@core';
 import { toast } from 'sonner';
-import { Maximize, Package, Hammer, LogOut } from 'lucide-react';
+import { Maximize, Package, Hammer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -120,7 +120,7 @@ export function AuthScreen({ onDone }: { onDone: () => void }) {
 const TITLE: Record<Target['kind'], string> = { plot: 'Ô đất', lockedPlot: 'Đất chưa mua', house: 'Nhà', market: 'Chợ', building: 'Chuồng / ao', emptyBuilding: 'Chỗ trống' };
 
 export function GameScreen() {
-  const { view, online, refresh, onLogout } = useFarm();
+  const { view, online, refresh } = useFarm();
   const [target, setTarget] = useState<Target | null>(null);
   const [market, setMarket] = useState<{ open: boolean; tab: 'buy' | 'sell' }>({ open: false, tab: 'sell' });
   const [jobs, setJobs] = useState(false);
@@ -214,9 +214,6 @@ export function GameScreen() {
       <JobDialog open={jobs} onOpenChange={setJobs} />
       <ExpandDialog open={expand} onOpenChange={setExpand} />
       <InventoryDialog open={inv} onOpenChange={setInv} />
-      <button className="sr-only" onClick={onLogout} aria-label="Đăng xuất">
-        <LogOut />
-      </button>
     </>
   );
 }
