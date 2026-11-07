@@ -9,7 +9,7 @@ import { Note, xu } from './ui';
 const LETTERS = ['A', 'B', 'C', 'D'];
 
 export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const { view, act, pending } = useFarm();
+  const { view, act, locked } = useFarm();
   const now = useNow(open ? 250 : 60_000); // chỉ chạy nhanh khi đang mở
   if (!view) return null;
   const j = view.job;
@@ -42,7 +42,7 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               </h3>
               <div className="grid gap-2">
                 {a.question.options.map((o, i) => (
-                  <Button key={i} variant="outline" className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left text-[15px]" disabled={pending} data-testid={`job-option-${i}`} onClick={() => act({ type: 'answer', idx: a.idx, choice: i })}>
+                  <Button key={i} variant="outline" className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left text-[15px]" disabled={locked} data-testid={`job-option-${i}`} onClick={() => act({ type: 'answer', idx: a.idx, choice: i })}>
                     <span className="mr-2 font-bold text-amber-600">{LETTERS[i]}</span>
                     {o}
                   </Button>
@@ -82,12 +82,12 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
                       Phí {o.fee} xu → thưởng <b className="text-emerald-700">{o.reward} xu</b>
                     </div>
                   </div>
-                  <Button className="h-11" disabled={pending || view.coins < o.fee || j.taken >= j.perDay} onClick={() => act({ type: 'acceptJob', offerId: o.id })} data-testid="job-accept">
+                  <Button className="h-11" disabled={locked || view.coins < o.fee || j.taken >= j.perDay} onClick={() => act({ type: 'acceptJob', offerId: o.id })} data-testid="job-accept">
                     Nhận
                   </Button>
                 </div>
               ))}
-              <Button variant="outline" className="h-11 w-full" disabled={pending || view.coins < j.rerollCost} onClick={() => act({ type: 'rerollJobs' })} data-testid="job-reroll">
+              <Button variant="outline" className="h-11 w-full" disabled={locked || view.coins < j.rerollCost} onClick={() => act({ type: 'rerollJobs' })} data-testid="job-reroll">
                 🔄 Đổi danh sách ngay · {xu(j.rerollCost)}
               </Button>
             </>

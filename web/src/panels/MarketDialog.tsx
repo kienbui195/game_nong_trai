@@ -22,11 +22,11 @@ export function MarketDialog({ open, tab, onOpenChange, onTab }: { open: boolean
           <DialogDescription>Giá bán đổi mỗi 4 giờ. Bán nhiều một món thì giá món đó tụt, rồi hồi lại dần.</DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={(v) => onTab(v as 'buy' | 'sell')} className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="grid h-11 w-full grid-cols-2">
-            <TabsTrigger value="sell" data-testid="tab-sell">
+          <TabsList className="grid h-auto w-full grid-cols-2">
+            <TabsTrigger value="sell" className="h-11" data-testid="tab-sell">
               Bán
             </TabsTrigger>
-            <TabsTrigger value="buy" data-testid="tab-buy">
+            <TabsTrigger value="buy" className="h-11" data-testid="tab-buy">
               Mua
             </TabsTrigger>
           </TabsList>
@@ -43,7 +43,7 @@ export function MarketDialog({ open, tab, onOpenChange, onTab }: { open: boolean
 }
 
 function SellList() {
-  const { view, act, pending } = useFarm();
+  const { view, act, locked } = useFarm();
   const ask = useConfirm();
   if (!view) return null;
   const rows = view.market.flatMap((m) => {
@@ -75,11 +75,11 @@ function SellList() {
               có {have} · <span className={ARROW_COLOR[m.trend]}>{ARROW[m.trend]}</span> {price} xu/cái
             </div>
           </div>
-          <Button size="sm" className="h-10" disabled={pending} onClick={() => sell(m.itemId, 1, hq, price)} data-testid="sell-1">
+          <Button size="sm" className="h-11 min-w-11" disabled={locked} onClick={() => sell(m.itemId, 1, hq, price)} data-testid="sell-1">
             Bán 1
           </Button>
           {have > 1 && (
-            <Button size="sm" variant="secondary" className="h-10" disabled={pending} onClick={() => sell(m.itemId, have, hq, price)} data-testid="sell-all">
+            <Button size="sm" variant="secondary" className="h-11 min-w-11" disabled={locked} onClick={() => sell(m.itemId, have, hq, price)} data-testid="sell-all">
               Hết
             </Button>
           )}
@@ -90,7 +90,7 @@ function SellList() {
 }
 
 function BuyList() {
-  const { view, act, pending } = useFarm();
+  const { view, act, locked } = useFarm();
   const [n, setN] = useState(1);
   if (!view) return null;
   const items = [...CROPS.filter((c) => c.season === view.season).map((c) => `seed:${c.id}`), ...Object.keys(SUPPLIES)];
@@ -99,7 +99,7 @@ function BuyList() {
       <div className="flex items-center gap-2 text-sm">
         Số lượng:
         {[1, 5, 10].map((k) => (
-          <Button key={k} size="sm" variant={n === k ? 'default' : 'outline'} className="h-10 w-12" onClick={() => setN(k)}>
+          <Button key={k} size="sm" variant={n === k ? 'default' : 'outline'} className="h-11 w-12" onClick={() => setN(k)}>
             {k}
           </Button>
         ))}
@@ -115,7 +115,7 @@ function BuyList() {
                 {price} xu · đang có {view.inventory[id]?.n ?? 0}
               </div>
             </div>
-            <Button size="sm" className="h-10" disabled={pending || view.coins < price * n} onClick={() => act({ type: 'buy', itemId: id, n }, { success: `Đã mua ${n} ${itemName(id).toLowerCase()}` })} data-testid="buy">
+            <Button size="sm" className="h-11 min-w-11" disabled={locked || view.coins < price * n} onClick={() => act({ type: 'buy', itemId: id, n }, { success: `Đã mua ${n} ${itemName(id).toLowerCase()}` })} data-testid="buy">
               Mua {xu(price * n)}
             </Button>
           </div>

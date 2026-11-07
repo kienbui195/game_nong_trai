@@ -97,6 +97,16 @@ describe('US-01 tài khoản', () => {
     assert.equal((await call('GET', '/api/farm')).status, 401);
   });
 
+  test('AC-01.5 người chơi đã bị quản trị xoá mà máy còn phiên: 401 (về đăng nhập), không 500', async () => {
+    const u = await register();
+    assert.equal((await call('GET', '/api/farm', undefined, u.auth)).status, 200);
+    const [rows] = (await pool.query('SELECT id FROM users WHERE username = ?', [u.username])) as any;
+    assert.equal((await call('DELETE', `/admin-api/players/${rows[0].id}`, undefined, ADMIN)).status, 200);
+    assert.equal((await call('GET', '/api/farm', undefined, u.auth)).status, 401);
+    assert.equal((await call('POST', '/api/farm/actions', { id: 'gone-user-0001', action: { type: 'sleep' } }, u.auth)).status, 401);
+    assert.equal(Number(((await pool.query('SELECT COUNT(*) AS n FROM farms')) as any)[0][0].n), 0, 'không tạo lại nông trại mồ côi');
+  });
+
   test('AC-01.6 biên mật khẩu 5/6 ký tự, tên 24/25 ký tự', async () => {
     const users = async () => Number(((await pool.query('SELECT COUNT(*) AS n FROM users')) as any)[0][0].n);
     const n0 = await users();

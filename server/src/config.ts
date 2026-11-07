@@ -17,6 +17,8 @@ export const config = {
   jwtDays: num(process.env.JWT_DAYS, 30),
   corsOrigins: (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
   version: process.env.APP_VERSION ?? '0.1.0',
+  /** số lần đăng ký + đăng nhập mỗi phút mỗi IP */
+  authPerMinute: num(process.env.AUTH_PER_MINUTE, 20),
 };
 
 export function assertConfig() {

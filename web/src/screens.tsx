@@ -76,9 +76,9 @@ export function AuthScreen({ onDone }: { onDone: () => void }) {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="register">
-            <TabsList className="grid h-11 w-full grid-cols-2">
-              <TabsTrigger value="register">Chơi mới</TabsTrigger>
-              <TabsTrigger value="login">Đăng nhập</TabsTrigger>
+            <TabsList className="grid h-auto w-full grid-cols-2">
+              <TabsTrigger value="register" className="h-11">Chơi mới</TabsTrigger>
+              <TabsTrigger value="login" className="h-11">Đăng nhập</TabsTrigger>
             </TabsList>
             <TabsContent value="register" className="space-y-3 pt-3">
               <div className="space-y-1">

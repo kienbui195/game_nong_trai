@@ -84,7 +84,7 @@ export function BuildingPanel({ buildingId, openMarket }: { buildingId: number; 
                   {f.name} · {f.mature ? 'đã lớn' : pct(f.progress)}
                 </span>
                 {f.mature && (
-                  <Button size="sm" className="h-9" data-testid="sell-fish" onClick={() => act({ type: 'sellFish', buildingId, fishId: f.id, expected: price }, { success: 'Đã bán cá!' })}>
+                  <Button size="sm" className="h-11 min-w-11" data-testid="sell-fish" onClick={() => act({ type: 'sellFish', buildingId, fishId: f.id, expected: price }, { success: 'Đã bán cá!' })}>
                     Bán ~{price}
                   </Button>
                 )}

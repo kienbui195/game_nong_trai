@@ -5,9 +5,9 @@ import { useFarm } from '@/lib/farm';
 
 /** Nút việc: cao 44px, hiện thể lực / giá ở bên phải. */
 export function ActBtn({ children, cost, onClick, disabled, variant = 'secondary', testId }: { children: ReactNode; cost?: string; onClick: () => void; disabled?: boolean; variant?: 'default' | 'secondary' | 'outline' | 'destructive'; testId?: string }) {
-  const { pending, online } = useFarm();
+  const { locked } = useFarm();
   return (
-    <Button data-testid={testId} variant={variant} className="h-11 w-full justify-between px-3 text-[15px]" disabled={disabled || pending || online === 'offline'} onClick={onClick}>
+    <Button data-testid={testId} variant={variant} className="h-11 w-full justify-between px-3 text-[15px]" disabled={disabled || locked} onClick={onClick}>
       <span className="truncate">{children}</span>
       {cost && <span className="ml-2 shrink-0 text-xs opacity-70">{cost}</span>}
     </Button>

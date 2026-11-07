@@ -6,10 +6,10 @@ import { AdminApiController } from './admin';
 import { AuthError, AuthService, type AuthUser } from './auth';
 import { assertConfig, config } from './config';
 import { POOL, makePool, migrate } from './db';
-import { BadAction, FarmService } from './farm';
+import { BadAction, FarmService, UserGone } from './farm';
 import { RateLimiter } from './rateLimit';
 
-const authLimit = new RateLimiter(20, 60_000); // mỗi IP: đăng ký + đăng nhập mỗi phút
+const authLimit = new RateLimiter(config.authPerMinute, 60_000); // mỗi IP: đăng ký + đăng nhập mỗi phút
 const actionLimit = new RateLimiter(240, 60_000); // mỗi người chơi: thao tác mỗi phút
 
 const ipOf = (req: { headers: Record<string, string | string[] | undefined>; ip?: string }) =>
@@ -17,6 +17,7 @@ const ipOf = (req: { headers: Record<string, string | string[] | undefined>; ip?
 
 const fail = (e: unknown): never => {
   if (e instanceof AuthError) throw new HttpException(e.message, e.status);
+  if (e instanceof UserGone) throw new HttpException('Tài khoản không còn. Đăng nhập lại nhé.', 401);
   throw e;
 };
 
@@ -68,7 +69,11 @@ class AppController {
   @Get('farm')
   async farm(@Headers('authorization') h?: string) {
     const u = this.user(h);
-    return { view: await this.farms.get(u.id), serverNow: Date.now() };
+    try {
+      return { view: await this.farms.get(u.id), serverNow: this.farms.now() };
+    } catch (e) {
+      return fail(e);
+    }
   }
 
   @Post('farm/actions')
@@ -79,12 +84,12 @@ class AppController {
       const out = await this.farms.act(u.id, body?.id, body?.action);
       if (!out.ok) {
         console.warn(`[action] user=${u.id} type=${String((body?.action as { type?: unknown })?.type)} code=${out.error?.code}`);
-        throw new HttpException({ ...out, serverNow: Date.now() }, 409);
+        throw new HttpException({ ...out, serverNow: this.farms.now() }, 409);
       }
-      return { ...out, serverNow: Date.now() };
+      return { ...out, serverNow: this.farms.now() };
     } catch (e) {
       if (e instanceof BadAction) throw new HttpException(e.message, 400);
-      throw e;
+      return fail(e);
     }
   }
 }

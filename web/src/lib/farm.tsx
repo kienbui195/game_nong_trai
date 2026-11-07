@@ -10,6 +10,8 @@ interface FarmCtx {
   view: FarmView | null;
   online: Online;
   pending: boolean;
+  /** khoá mọi nút việc: đang chờ server hoặc mất kết nối (AC-01.5) */
+  locked: boolean;
   /** Gửi thao tác. Trả lỗi game (nếu có) để nơi gọi xử lý tiếp (vd hỏi xác nhận). */
   act: (a: Action, opts?: { quiet?: boolean; success?: string }) => Promise<GameError | null>;
   refresh: () => Promise<void>;
@@ -89,6 +91,6 @@ export function FarmProvider({ children, onLogout }: { children: ReactNode; onLo
     };
   }, [refresh]);
 
-  const value = useMemo(() => ({ view, online, pending, act, refresh, onLogout }), [view, online, pending, act, refresh, onLogout]);
+  const value = useMemo(() => ({ view, online, pending, locked: pending || online === 'offline', act, refresh, onLogout }), [view, online, pending, act, refresh, onLogout]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -68,6 +68,12 @@ describe('US-03 thể lực và ngủ', () => {
     expect(r.error!.message).toContain('2');
     expect(r.farm.plots[1].crop).toBeNull();
     expect(r.farm.inventory['seed:rau_cai'].n).toBe(1);
+    // ngay sau giới hạn: còn 1, cần 2 → từ chối, thể lực không âm
+    const g = give(fresh(), 'seed:rau_cai', 1);
+    g.stamina = 1;
+    const r1 = fail(g, { type: 'plant', plotId: 0, cropId: 'rau_cai' }, T0, 'no_stamina');
+    expect(r1.error!.message).toContain('Thiếu 1 thể lực');
+    expect(r1.farm.stamina).toBe(1);
   });
 
   test('AC-03.4 đang thức thì không tự hồi', () => {

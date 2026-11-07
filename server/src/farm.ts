@@ -16,6 +16,11 @@ export interface ActOutcome {
 export class FarmService {
   constructor(private pool: Pool, private clock: () => number = Date.now) {}
 
+  /** Giờ server dùng cho mọi tính toán; giao diện đếm ngược theo đúng giờ này (serverNow). */
+  now() {
+    return this.clock();
+  }
+
   private async withFarm<T>(userId: number, fn: (conn: PoolConnection, farm: Farm, now: number) => Promise<{ farm: Farm; result: T }>): Promise<T> {
     const conn = await this.pool.getConnection();
     try {
@@ -25,6 +30,9 @@ export class FarmService {
       let farm: Farm;
       if (rows[0]) farm = JSON.parse(String(rows[0].state));
       else {
+        // phiên còn hạn nhưng tài khoản đã bị xoá (trang quản trị): không tạo nông trại mồ côi
+        const [u] = await conn.query<RowDataPacket[]>('SELECT 1 FROM users WHERE id = ?', [userId]);
+        if (!u[0]) throw new UserGone();
         farm = newFarm(now, randomInt(2 ** 31), { levelCounts: await levelCounts(conn) });
         await conn.query('INSERT INTO farms (user_id, state, sim_at) VALUES (?, ?, ?)', [userId, JSON.stringify(farm), farm.simAt]);
       }
@@ -67,3 +75,5 @@ export class FarmService {
 }
 
 export class BadAction extends Error {}
+/** Tài khoản không còn: giao diện cần về màn đăng nhập (401). */
+export class UserGone extends Error {}
