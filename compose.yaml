@@ -21,7 +21,7 @@ services:
       NODE_ENV: production
       CORS_ORIGINS: "https://nongtrai.baodom.xyz"
     ports:
-      - "127.0.0.1:3106:3000" # kiểm cổng còn trống trên VPS trước khi deploy
+      - "127.0.0.1:3109:3000" # 3000–3108 đã có app khác dùng trên VPS
     networks: [appnet]
     mem_limit: 256m
     read_only: true
@@ -40,7 +40,7 @@ services:
     container_name: nongtrai-web
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3107:80"
+      - "127.0.0.1:3110:80"
     mem_limit: 64m
     read_only: true
     tmpfs: [/data, /config]

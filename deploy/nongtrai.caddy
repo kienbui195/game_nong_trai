@@ -1,0 +1,11 @@
+# Bản mẫu cho /etc/caddy/sites/nongtrai.caddy trên VPS. TLS do Cloudflare (tunnel) lo.
+# FE + BE cùng một domain. Chỉ /api/* vào BE; /admin-api không bao giờ được chuyển (chỉ hub gọi trong appnet).
+http://nongtrai.baodom.xyz {
+	encode gzip zstd
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3109
+	}
+	handle {
+		reverse_proxy 127.0.0.1:3110
+	}
+}
