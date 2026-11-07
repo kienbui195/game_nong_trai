@@ -1,0 +1,52 @@
+# Chạy trên VPS (không chạy ở laptop): cần mạng Docker `appnet` và các file bí mật trong /srv/secrets
+# (nongtrai.db.env từ `vps db-create nongtrai`, nongtrai.app.env có JWT_SECRET, nongtrai.admin.env có ADMIN_API_TOKEN).
+# Một tên miền nongtrai.baodom.xyz (Q23): Caddy trên máy chủ chuyển /api/* sang API, còn lại sang web.
+# /admin-api KHÔNG đi qua Caddy: trang quản trị chung gọi thẳng http://nongtrai-api:3000 trong mạng appnet.
+name: nongtrai
+services:
+  nongtrai-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: nongtrai-api:latest
+    container_name: nongtrai-api
+    restart: unless-stopped
+    env_file:
+      - /srv/secrets/nongtrai.db.env
+      - /srv/secrets/nongtrai.app.env
+      - /srv/secrets/nongtrai.admin.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3000"
+      NODE_ENV: production
+      CORS_ORIGINS: "https://nongtrai.baodom.xyz"
+    ports:
+      - "127.0.0.1:3106:3000" # kiểm cổng còn trống trên VPS trước khi deploy
+    networks: [appnet]
+    mem_limit: 256m
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  nongtrai-web:
+    build: .
+    image: nongtrai-web:latest
+    container_name: nongtrai-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3107:80"
+    mem_limit: 64m
+    read_only: true
+    tmpfs: [/data, /config]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+networks:
+  appnet:
+    external: true
