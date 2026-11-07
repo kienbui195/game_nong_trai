@@ -1,12 +1,9 @@
 import { randomInt } from 'node:crypto';
 import type { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
-import { act, advance, newFarm, view, type Action, type ActCtx, type Farm, type GameError, type JobLevel } from '../../core/src';
+import { ACTION_TYPES, act, advance, newFarm, view, type Action, type ActCtx, type Farm, type GameError } from '../../core/src';
 import { levelCounts, pickQuestions } from './questions';
 
-const ACTION_TYPES = new Set([
-  'sleep', 'wake', 'plant', 'water', 'fertilize', 'spray', 'harvest', 'clear', 'buyAnimal', 'feed', 'pet', 'walk', 'collect', 'medicate',
-  'sellAnimal', 'buyFish', 'feedPond', 'talkPond', 'medicatePond', 'sellFish', 'buy', 'sell', 'expand', 'upgrade', 'rerollJobs', 'acceptJob', 'answer',
-]);
+const KNOWN = new Set<string>(ACTION_TYPES);
 
 export interface ActOutcome {
   ok: boolean;
@@ -54,13 +51,14 @@ export class FarmService {
 
   async act(userId: number, actionId: unknown, action: unknown): Promise<ActOutcome> {
     if (typeof actionId !== 'string' || !/^[A-Za-z0-9_-]{8,64}$/.test(actionId)) throw new BadAction('Thiếu mã thao tác.');
-    if (!action || typeof action !== 'object' || !ACTION_TYPES.has(String((action as { type?: unknown }).type))) throw new BadAction('Thao tác không hợp lệ.');
+    if (!action || typeof action !== 'object' || !KNOWN.has(String((action as { type?: unknown }).type))) throw new BadAction('Thao tác không hợp lệ.');
     const a = action as Action;
     return this.withFarm(userId, async (conn, farm, now) => {
       const ctx: ActCtx = { levelCounts: await levelCounts(conn) };
       if (a.type === 'acceptJob') {
-        const offer = advance(farm, now, ctx).job.offers.find((o) => o.id === a.offerId);
-        if (offer) ctx.questions = await pickQuestions(conn, offer.level as JobLevel, farm.job.seen);
+        // mã việc tăng dần nên việc người chơi thấy đã nằm trong bản lưu; việc vừa bị làm mới thì core báo no_offer
+        const offer = farm.job.offers.find((o) => o.id === a.offerId);
+        if (offer) ctx.questions = await pickQuestions(conn, offer.level, farm.job.seen);
       }
       const r = act(farm, a, now, ctx, actionId);
       return { farm: r.farm, result: { ok: !r.error, ...(r.error ? { error: r.error } : {}), ...(r.replay ? { replay: true } : {}), view: view(r.farm, now, ctx) } };

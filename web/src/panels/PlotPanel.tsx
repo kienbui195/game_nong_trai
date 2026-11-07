@@ -42,7 +42,7 @@ export function PlotPanel({ plotId, openMarket }: { plotId: number; openMarket: 
   const ferts = (Object.keys(FERTILIZERS) as FertilizerId[]).filter((k) => (view.inventory[`fert:${k}`]?.n ?? 0) > 0);
   const canFert = (!c.fertilizer || tree) && c.stage !== 'sleeping'; // cây ăn quả bón lại mỗi mùa (server kiểm)
   const stageText: Record<string, string> = {
-    growing: tree ? 'Đang lớn' : 'Đang lớn',
+    growing: 'Đang lớn',
     ripe: 'Đã chín — thu hoạch được',
     fruit: 'Có quả — thu được',
     mature: 'Cây đã lớn, đang chờ ra quả',

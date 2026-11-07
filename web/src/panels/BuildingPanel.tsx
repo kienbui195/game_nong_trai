@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ANIMALS, EXPANSION, FISH, STAMINA_COST } from '@core';
+import { ANIMALS, EXPANSION, FISH, HOUR, STAMINA_COST, feedFor, medFor } from '@core';
 import { Button } from '@/components/ui/button';
 import { useFarm } from '@/lib/farm';
 import { fmtClock, pct } from '@/lib/time';
@@ -84,7 +84,7 @@ export function BuildingPanel({ buildingId, openMarket }: { buildingId: number; 
                   {f.name} · {f.mature ? 'đã lớn' : pct(f.progress)}
                 </span>
                 {f.mature && (
-                  <Button size="sm" className="h-9" data-testid="sell-fish" onClick={() => act({ type: 'sellFish', buildingId, fishId: f.id }, { success: 'Đã bán cá!' })}>
+                  <Button size="sm" className="h-9" data-testid="sell-fish" onClick={() => act({ type: 'sellFish', buildingId, fishId: f.id, expected: price }, { success: 'Đã bán cá!' })}>
                     Bán ~{price}
                   </Button>
                 )}
@@ -100,7 +100,7 @@ export function BuildingPanel({ buildingId, openMarket }: { buildingId: number; 
             {shop &&
               FISH.map((f) => (
                 <ActBtn key={f.id} cost={xu(f.price)} onClick={() => act({ type: 'buyFish', buildingId, species: f.id, n: 1 })} testId={`buy-fish-${f.id}`}>
-                  {f.emoji} {f.name} · lớn sau {Math.round(f.matureMs / 3600000)} giờ
+                  {f.emoji} {f.name} · lớn sau {Math.round(f.matureMs / HOUR)} giờ
                 </ActBtn>
               ))}
           </>
@@ -112,8 +112,8 @@ export function BuildingPanel({ buildingId, openMarket }: { buildingId: number; 
 
   const list = view.animals.filter((a) => a.buildingId === b.id);
   const species = ANIMALS.filter((a) => a.building === b.type);
-  const feedId = b.type === 'coop' ? 'feed:poultry' : 'feed:livestock';
-  const medId = b.type === 'coop' ? 'med:poultry' : 'med:livestock';
+  const feedId = feedFor(species[0].id);
+  const medId = medFor(species[0].id);
   return (
     <div className="space-y-3">
       <div className="font-semibold">
@@ -172,7 +172,7 @@ export function BuildingPanel({ buildingId, openMarket }: { buildingId: number; 
       {list.length < b.capacity &&
         species.map((s) => (
           <ActBtn key={s.id} variant="default" cost={xu(s.price)} onClick={() => act({ type: 'buyAnimal', species: s.id, buildingId }, { success: `Đã mua ${s.name.toLowerCase()}!` })} testId={`buy-${s.id}`}>
-            {s.emoji} Mua {s.name.toLowerCase()} · {s.productName.toLowerCase()} mỗi {Math.round(s.cycleMs / 3600000)} giờ
+            {s.emoji} Mua {s.name.toLowerCase()} · {s.productName.toLowerCase()} mỗi {Math.round(s.cycleMs / HOUR)} giờ
           </ActBtn>
         ))}
       {upgrade}

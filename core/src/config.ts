@@ -35,7 +35,6 @@ export const STAMINA_COST = {
   feedPond: 2,
   talkPond: 1,
   medicatePond: 2,
-  sellFish: 0,
 } as const;
 
 export type CropKind = 'short' | 'long' | 'tree';

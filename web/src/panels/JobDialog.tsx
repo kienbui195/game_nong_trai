@@ -1,4 +1,4 @@
-import { JOBS } from '@core';
+import { JOBS, type JobLevel } from '@core';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +10,7 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { view, act, pending } = useFarm();
-  const now = useNow(200);
+  const now = useNow(open ? 250 : 60_000); // chỉ chạy nhanh khi đang mở
   if (!view) return null;
   const j = view.job;
   const a = j.active;
@@ -30,7 +30,7 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
             <div className="space-y-3" data-testid="job-active">
               <div className="flex items-center justify-between text-sm">
                 <span>
-                  Câu {a.idx + 1}/{a.total} · {JOBS.levels[a.level as 1 | 2 | 3].label}
+                  Câu {a.idx + 1}/{a.total} · {JOBS.levels[a.level as JobLevel].label}
                 </span>
                 <span className={left < 5000 ? 'font-bold text-red-600' : 'font-bold text-amber-600'} data-testid="job-timer">
                   ⏱ {Math.ceil(left / 1000)}s
@@ -77,7 +77,7 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               {j.offers.map((o) => (
                 <div key={o.id} className="flex items-center gap-3 rounded-xl border p-3" data-testid="job-offer">
                   <div className="flex-1 text-sm">
-                    <div className="font-semibold">Việc {JOBS.levels[o.level as 1 | 2 | 3].label.toLowerCase()} · 10 câu</div>
+                    <div className="font-semibold">Việc {JOBS.levels[o.level as JobLevel].label.toLowerCase()} · {JOBS.questionsPerJob} câu</div>
                     <div className="text-muted-foreground">
                       Phí {o.fee} xu → thưởng <b className="text-emerald-700">{o.reward} xu</b>
                     </div>

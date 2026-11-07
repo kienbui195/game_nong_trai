@@ -52,7 +52,7 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
   }
   const d = data as { serverNow?: number; message?: string } | null;
   if (d && typeof d.serverNow === 'number') offset = d.serverNow - Date.now();
-  if (r.status >= 500 || r.status === 502 || r.status === 504) throw new NetError('Server đang lỗi.');
+  if (r.status === 502 || r.status === 503 || r.status === 504) throw new NetError('Server không trả lời.');
   if (!r.ok && r.status !== 409) throw new ApiError(r.status, typeof d?.message === 'string' ? d.message : 'Có lỗi.', data);
   return data as T;
 }
@@ -63,7 +63,6 @@ export interface AuthResult {
 }
 export const register = (displayName: string, password: string) => req<AuthResult>('POST', '/api/auth/register', { displayName, password });
 export const login = (username: string, password: string) => req<AuthResult>('POST', '/api/auth/login', { username, password });
-export const me = () => req<{ user: AuthResult['user'] }>('GET', '/api/me');
 export const loadFarm = () => req<{ view: FarmView; serverNow: number }>('GET', '/api/farm');
 
 export interface ActResponse {

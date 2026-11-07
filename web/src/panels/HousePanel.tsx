@@ -1,4 +1,4 @@
-import { SLEEP_MS_PER_POINT } from '@core';
+import { SLEEP_MS_PER_POINT, STAMINA_MAX } from '@core';
 import { useFarm } from '@/lib/farm';
 import { fmtLeft } from '@/lib/time';
 import { ActBtn, Note } from './ui';
@@ -15,7 +15,7 @@ export function HousePanel({ openJobs }: { openJobs: () => void }) {
           {!full && ` · đầy sau ${fmtLeft((view.staminaMax - view.stamina) * SLEEP_MS_PER_POINT)}`}. Tắt app vẫn hồi.
         </Note>
       ) : (
-        <Note>Thể lực không tự hồi. Ngủ trên giường để hồi dần (+1 mỗi 36 giây, đầy sau 60 phút).</Note>
+        <Note>Thể lực không tự hồi. Ngủ trên giường để hồi dần (+1 mỗi {SLEEP_MS_PER_POINT / 1000} giây, đầy sau {fmtLeft(STAMINA_MAX * SLEEP_MS_PER_POINT)}).</Note>
       )}
       {view.sleeping ? (
         <ActBtn variant="default" onClick={() => act({ type: 'wake' })} testId="wake">

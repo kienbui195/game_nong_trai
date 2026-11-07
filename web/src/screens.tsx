@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { SEASON_DAYS, STAMINA_MAX } from '@core';
 import { toast } from 'sonner';
 import { Maximize, Package, Hammer, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -152,14 +153,14 @@ export function GameScreen() {
           <div className="flex items-center gap-2 text-sm font-semibold">
             <span data-testid="hud-coins">🪙 {view?.coins.toLocaleString('vi-VN') ?? '—'}</span>
             <span className="opacity-80" data-testid="hud-season">
-              {view ? `${view.seasonLabel} · ngày ${view.dayInSeason}/7 · năm ${view.year}` : ''}
+              {view ? `${view.seasonLabel} · ngày ${view.dayInSeason}/${SEASON_DAYS} · năm ${view.year}` : ''}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-2 text-xs">
             <span>⚡</span>
             <Progress value={view ? (view.stamina / view.staminaMax) * 100 : 0} className="h-2 flex-1 bg-emerald-950 [&>div]:bg-yellow-400" />
             <span data-testid="hud-stamina">
-              {view?.stamina ?? 0}/{view?.staminaMax ?? 100}
+              {view?.stamina ?? 0}/{view?.staminaMax ?? STAMINA_MAX}
               {view?.sleeping && ' 💤'}
             </span>
           </div>

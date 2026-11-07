@@ -184,6 +184,12 @@ export type Action =
 
 export type ActionType = Action['type'];
 
+/** Danh sách loại thao tác (server dùng để chặn thao tác lạ). */
+export const ACTION_TYPES: readonly ActionType[] = [
+  'sleep', 'wake', 'plant', 'water', 'fertilize', 'spray', 'harvest', 'clear', 'buyAnimal', 'feed', 'pet', 'walk', 'collect', 'medicate',
+  'sellAnimal', 'buyFish', 'feedPond', 'talkPond', 'medicatePond', 'sellFish', 'buy', 'sell', 'expand', 'upgrade', 'rerollJobs', 'acceptJob', 'answer',
+];
+
 /** Dữ liệu server cấp thêm cho lõi luật (lõi luật không đọc DB). */
 export interface ActCtx {
   /** số câu hỏi đang có theo độ khó 1/2/3 */

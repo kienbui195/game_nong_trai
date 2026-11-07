@@ -1,6 +1,6 @@
 // Bản đồ nông trại vẽ bằng Phaser 3 (hình khối + emoji tạm, Q9). React lo mọi bảng và nút đè lên trên.
 import Phaser from 'phaser';
-import { ANIMAL_BY_ID, CROP_BY_ID, HOUSE_RECT, MAP_COLS, MAP_ROWS, MARKET_RECT, doorOf, type FarmView, type Rect } from '@core';
+import { ANIMAL_BY_ID, CROP_BY_ID, EXPANSION, HOUSE_RECT, MAP_COLS, MAP_ROWS, MARKET_RECT, doorOf, type FarmView, type Rect } from '@core';
 import { blockedGrid, zoneAt, zones, type Target, type Zone } from './layout';
 import { nearestStand, type Pt } from './path';
 
@@ -126,7 +126,7 @@ export class FarmScene extends Phaser.Scene {
       } else if (t.kind === 'emptyBuilding') {
         add(this.add.rectangle(this.px(r.x) + 3, this.px(r.y) + 3, r.w * T - 6, r.h * T - 6, 0xffffff, 0.15).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.6));
         add(this.emoji(r.x + (r.w - 1) / 2, r.y + (r.h - 1) / 2 - 0.15, '＋', 0.55));
-        add(this.label(r, t.type === 'coop' ? 'Chuồng gà' : t.type === 'barn' ? 'Chuồng bò' : 'Ao cá'));
+        add(this.label(r, EXPANSION.build[t.type].label));
       } else if (t.kind === 'building') {
         const b = v.buildings.find((x) => x.id === t.buildingId)!;
         if (b.type === 'pond') {
@@ -141,7 +141,7 @@ export class FarmScene extends Phaser.Scene {
           list.slice(0, 6).forEach((a, i) => add(this.emoji(r.x + (i % 3), r.y + Math.floor(i / 3) * 0.9, ANIMAL_BY_ID[a.species].emoji, a.mature ? 0.6 : 0.42)));
           const need = list.some((a) => a.product) ? '🥚' : list.some((a) => a.sick) ? '🤒' : list.some((a) => a.hungry) ? '🍽️' : '';
           if (need) add(this.emoji(r.x + r.w - 1, r.y, need, 0.45));
-          add(this.label(r, `${b.type === 'coop' ? 'Chuồng gà vịt' : 'Chuồng gia súc'} ${list.length}/${b.capacity}`));
+          add(this.label(r, `${EXPANSION.build[b.type].label} ${list.length}/${b.capacity}`));
         }
       }
     }

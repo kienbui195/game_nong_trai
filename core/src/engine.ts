@@ -19,6 +19,7 @@ import {
   MARKET,
   MARKET_PERIOD_MS,
   QUALITY_CAP,
+  SEASON_DAYS,
   SEASON_LABEL,
   SLEEP_MS_PER_POINT,
   STAMINA_COST,
@@ -189,7 +190,7 @@ function simulate(f: Farm, now: number, ctx: ActCtx) {
 function dayBoundary(f: Farm, t0: number) {
   const d = dayNo(f, t0);
   // sang mùa mới: cây ngắn/dài ngày của mùa cũ héo (BR8)
-  if (d % 7 === 0) {
+  if (d % SEASON_DAYS === 0) {
     for (const p of f.plots) {
       const c = p.crop;
       if (c && !c.withered && CROP_BY_ID[c.cropId].kind !== 'tree') c.withered = true;
@@ -387,9 +388,8 @@ function marketRow(f: Farm, item: string, t: number): MarketRow {
   const factor = periodFactor(f, item, p);
   const sf = seasonFactor(f, item, t);
   const drop = effDrop(f, item, t);
-  const price = Math.max(1, Math.round(s.base * factor * sf * (1 - drop)));
-  const prevT = Math.max(f.createdAt, t - MARKET_PERIOD_MS);
-  const prevPrice = p === 0 ? price : Math.max(1, Math.round(s.base * periodFactor(f, item, p - 1) * seasonFactor(f, item, prevT)));
+  const price = unitPrice(f, item, t, drop, false);
+  const prevPrice = p === 0 ? price : unitPrice(f, item, Math.max(f.createdAt, t - MARKET_PERIOD_MS), 0, false);
   const diff = (price - prevPrice) / prevPrice;
   return { itemId: item, base: s.base, factor, seasonFactor: sf, drop, price, hqPrice: Math.round(price * HQ_MULTIPLIER), prevPrice, trend: Math.abs(diff) < MARKET.flatBelow ? 'flat' : diff > 0 ? 'up' : 'down' };
 }
@@ -448,8 +448,13 @@ const cropOf = (f: Farm, id: number) => plotOf(f, id).crop ?? fail('empty', 'Ô 
 const animalOf = (f: Farm, id: number) => f.animals.find((x) => x.id === id) ?? fail('no_animal', 'Không có con này.');
 const pondOf = (f: Farm, id: number) => f.ponds.find((x) => x.buildingId === id) ?? fail('no_pond', 'Không có ao này.');
 const buildingOf = (f: Farm, id: number) => f.buildings.find((x) => x.id === id) ?? fail('no_building', 'Không có công trình này.');
-const feedFor = (sp: string) => (ANIMAL_BY_ID[sp].building === 'coop' ? 'feed:poultry' : 'feed:livestock');
-const medFor = (sp: string) => (ANIMAL_BY_ID[sp].building === 'coop' ? 'med:poultry' : 'med:livestock');
+export const feedFor = (sp: string) => (ANIMAL_BY_ID[sp].building === 'coop' ? 'feed:poultry' : 'feed:livestock');
+export const medFor = (sp: string) => (ANIMAL_BY_ID[sp].building === 'coop' ? 'med:poultry' : 'med:livestock');
+/** BR13: chưa trưởng thành 1/2 giá mua, trưởng thành giá mua + 10%. */
+export const animalSellPrice = (a: Pick<Animal, 'species' | 'mature'>) => {
+  const p = ANIMAL_BY_ID[a.species].price;
+  return a.mature ? Math.round(p * 1.1) : Math.round(p / 2);
+};
 const intN = (n: unknown, lo: number, hi: number) => {
   if (typeof n !== 'number' || !Number.isInteger(n) || n < lo || n > hi) fail('bad_input', `Số lượng phải từ ${lo} đến ${hi}.`);
   return n as number;
@@ -612,8 +617,7 @@ function apply(f: Farm, a: Action, now: number, ctx: ActCtx) {
     }
     case 'sellAnimal': {
       const x = animalOf(f, a.animalId);
-      const def = ANIMAL_BY_ID[x.species];
-      f.coins += x.mature ? Math.round(def.price * 1.1) : Math.round(def.price / 2);
+      f.coins += animalSellPrice(x);
       f.animals = f.animals.filter((y) => y.id !== x.id);
       return;
     }
@@ -808,7 +812,7 @@ export function view(farm: Farm, now: number, ctx: ActCtx = {}) {
       progress: x.mature ? x.cycleMs / def.cycleMs : x.ageMs / def.matureMs,
       petToday: x.petDay === dayNo(f, now),
       walkToday: x.walkDay === dayNo(f, now),
-      sellPrice: x.mature ? Math.round(def.price * 1.1) : Math.round(def.price / 2),
+      sellPrice: animalSellPrice(x),
     };
   });
   const ponds = f.ponds.map((p) => ({

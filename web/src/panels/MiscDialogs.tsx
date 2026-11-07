@@ -24,18 +24,18 @@ export function ExpandDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               Đất đã tối đa
             </ActBtn>
           ) : (
-            <ActBtn variant="default" cost={xu(e.plots.price)} onClick={() => act({ type: 'expand', what: 'plots' }, { success: 'Có thêm 3 ô đất!' })} testId="expand-plots">
+            <ActBtn variant="default" cost={xu(e.plots.price)} onClick={() => act({ type: 'expand', what: 'plots' }, { success: `Có thêm ${EXPANSION.plotsPerBuy} ô đất!` })} testId="expand-plots">
               🟫 Thêm {EXPANSION.plotsPerBuy} ô đất
             </ActBtn>
           )}
           {builds.map((b) =>
             b.price === null ? (
               <ActBtn key={b.t} disabled onClick={() => undefined}>
-                {b.label}: đã tối đa ({b.have}/2)
+                {b.label}: đã tối đa ({b.have}/{b.prices.length})
               </ActBtn>
             ) : (
               <ActBtn key={b.t} variant="secondary" cost={xu(b.price)} onClick={() => act({ type: 'expand', what: b.t }, { success: `Đã xây ${b.label.toLowerCase()}!` })} testId={`expand-${b.t}`}>
-                🔨 Xây {b.label.toLowerCase()} ({b.have}/2)
+                🔨 Xây {b.label.toLowerCase()} ({b.have}/{b.prices.length})
               </ActBtn>
             ),
           )}
