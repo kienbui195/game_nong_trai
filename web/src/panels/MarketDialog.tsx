@@ -22,7 +22,7 @@ export function MarketDialog({ open, tab, onOpenChange, onTab }: { open: boolean
           <DialogDescription>Giá bán đổi mỗi 4 giờ. Bán nhiều một món thì giá món đó tụt, rồi hồi lại dần.</DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={(v) => onTab(v as 'buy' | 'sell')} className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="grid h-auto w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 group-data-horizontal/tabs:h-auto">
             <TabsTrigger value="sell" className="h-11" data-testid="tab-sell">
               Bán
             </TabsTrigger>
@@ -115,8 +115,8 @@ function BuyList() {
                 {price} xu · đang có {view.inventory[id]?.n ?? 0}
               </div>
             </div>
-            <Button size="sm" className="h-11 min-w-11" disabled={locked || view.coins < price * n} onClick={() => act({ type: 'buy', itemId: id, n }, { success: `Đã mua ${n} ${itemName(id).toLowerCase()}` })} data-testid="buy">
-              Mua {xu(price * n)}
+            <Button size="sm" className="h-11 min-w-20 tabular-nums" aria-label={`Mua ${n} ${itemName(id).toLowerCase()} giá ${xu(price * n)}`} disabled={locked || view.coins < price * n} onClick={() => act({ type: 'buy', itemId: id, n }, { success: `Đã mua ${n} ${itemName(id).toLowerCase()}` })} data-testid="buy">
+              {xu(price * n)}
             </Button>
           </div>
         );
