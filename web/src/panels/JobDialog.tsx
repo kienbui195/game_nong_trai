@@ -7,6 +7,10 @@ import { fmtClock, fmtLeft, useNow } from '@/lib/time';
 import { Note, xu } from './ui';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
+const mmss = (ms: number) => {
+  const s = Math.ceil(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
 
 export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { view, act, locked } = useFarm();
@@ -22,7 +26,7 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
         <DialogHeader>
           <DialogTitle>💻 Việc làm thêm · {xu(view.coins)}</DialogTitle>
           <DialogDescription>
-            Trả phí để nhận việc. Đúng đủ 10/10 câu mới được thưởng, sai một câu là mất phí. Không tốn và không hồi thể lực.
+            Trả phí để nhận việc. Đúng đủ 10/10 câu trong thời gian của đề mới được thưởng; sai một câu hoặc hết giờ là mất phí. Không tốn và không hồi thể lực.
           </DialogDescription>
         </DialogHeader>
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain">
@@ -32,11 +36,11 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
                 <span>
                   Câu {a.idx + 1}/{a.total} · {JOBS.levels[a.level as JobLevel].label}
                 </span>
-                <span className={left < 5000 ? 'font-bold text-red-600' : 'font-bold text-amber-600'} data-testid="job-timer">
-                  ⏱ {Math.ceil(left / 1000)}s
+                <span className={`font-bold tabular-nums ${left < 30_000 ? 'text-red-600' : 'text-amber-600'}`} data-testid="job-timer" title="Thời gian còn lại cho cả đề">
+                  ⏱ {mmss(left)}
                 </span>
               </div>
-              <Progress value={(left / JOBS.answerMs) * 100} className="h-2" />
+              <Progress value={(left / JOBS.levels[a.level as JobLevel].totalMs) * 100} className="h-2" />
               <h3 className="text-lg font-semibold leading-snug" data-testid="job-question">
                 {a.question.text}
               </h3>
@@ -77,7 +81,9 @@ export function JobDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               {j.offers.map((o) => (
                 <div key={o.id} className="flex items-center gap-3 rounded-xl border p-3" data-testid="job-offer">
                   <div className="flex-1 text-sm">
-                    <div className="font-semibold">Việc {JOBS.levels[o.level as JobLevel].label.toLowerCase()} · {JOBS.questionsPerJob} câu</div>
+                    <div className="font-semibold">
+                      Việc {JOBS.levels[o.level as JobLevel].label.toLowerCase()} · {JOBS.questionsPerJob} câu · ⏱ {mmss(JOBS.levels[o.level as JobLevel].totalMs)}
+                    </div>
                     <div className="text-muted-foreground">
                       Phí {o.fee} xu → thưởng <b className="text-emerald-700">{o.reward} xu</b>
                     </div>

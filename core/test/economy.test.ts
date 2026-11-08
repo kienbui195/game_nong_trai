@@ -1,5 +1,6 @@
 // Lõi luật: chăn nuôi, cá, chợ, mở rộng, việc làm thêm, chất lượng (AC-04.8, 05.x, 06.x, 07.x, 08.x, 09.x).
 import { describe, expect, test } from 'vitest';
+import { JOBS } from '../src/config';
 import { act, harvestQualityChance, marketPrice, newFarm, view } from '../src/engine';
 import { D, H, MIN, T0, allLevels, cu, fail, fresh, give, ok, questions } from './helpers';
 import type { Farm } from '../src/types';
@@ -290,13 +291,17 @@ describe('US-09 việc làm thêm', () => {
     expect(f.coins).toBe(500 - offer.fee);
   });
 
-  test('AC-09.3 trả lời ở giây 19,9 được; quá 20 giây là sai', () => {
+  test('AC-09.3 giờ tính cho cả đề: câu đầu chậm vẫn được nếu tổng còn trong hạn; quá tổng thời gian là sai', () => {
     let f = ready();
     const offer = f.job.offers[0];
+    const total = JOBS.levels[offer.level].totalMs;
     f = ok(f, { type: 'acceptJob', offerId: offer.id }, T0, ctxQ(offer.level));
-    f = ok(f, { type: 'answer', idx: 0, choice: 0 }, T0 + 19_900, allLevels);
+    f = ok(f, { type: 'answer', idx: 0, choice: 0 }, T0 + 60_000, allLevels); // 1 phút cho câu 1: vẫn được
     expect(f.job.active?.idx).toBe(1);
-    f = ok(f, { type: 'answer', idx: 1, choice: 0 }, T0 + 19_900 + 20_001, allLevels);
+    f = ok(f, { type: 'answer', idx: 1, choice: 0 }, T0 + total - 100, allLevels); // sát hạn cả đề: vẫn được
+    expect(f.job.active?.idx).toBe(2);
+    expect(f.job.active?.deadline).toBe(T0 + total); // trả lời đúng không cộng thêm giờ
+    f = ok(f, { type: 'answer', idx: 2, choice: 0 }, T0 + total + 1, allLevels);
     expect(f.job.active).toBeNull();
     expect(f.job.last?.reason).toBe('timeout');
   });
@@ -341,7 +346,7 @@ describe('US-09 việc làm thêm', () => {
     const o = f.job.offers[0];
     f = ok(f, { type: 'acceptJob', offerId: o.id }, T0, ctxQ(o.level));
     for (let i = 0; i < 3; i++) f = ok(f, { type: 'answer', idx: i, choice: 0 }, T0, allLevels);
-    const v = view(f, T0 + MIN, allLevels);
+    const v = view(f, T0 + JOBS.levels[o.level].totalMs + MIN, allLevels);
     expect(v.job.active).toBeNull();
     expect(v.job.last).toMatchObject({ ok: false, reason: 'timeout', answered: 3 });
   });

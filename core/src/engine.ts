@@ -748,7 +748,7 @@ function apply(f: Farm, a: Action, now: number, ctx: ActCtx) {
       f.coins -= offer.fee;
       j.taken++;
       j.offers = j.offers.filter((o) => o.id !== offer.id);
-      j.active = { ...offer, questions: clone(qs.slice(0, JOBS.questionsPerJob)), idx: 0, deadline: now + JOBS.answerMs };
+      j.active = { ...offer, questions: clone(qs.slice(0, JOBS.questionsPerJob)), idx: 0, deadline: now + JOBS.levels[offer.level].totalMs }; // hạn cho cả đề
       j.seen = [...j.seen, ...j.active.questions.map((q) => q.id)].slice(-JOBS.seenMemory);
       return;
     }
@@ -762,7 +762,7 @@ function apply(f: Farm, a: Action, now: number, ctx: ActCtx) {
         f.coins += j.reward;
         f.job.last = { ok: true, level: j.level, fee: j.fee, reward: j.reward, answered: j.idx, at: now };
         f.job.active = null;
-      } else j.deadline = now + JOBS.answerMs;
+      }
       return;
     }
   }

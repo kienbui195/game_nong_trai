@@ -1,5 +1,6 @@
 // US-09 việc làm thêm — phần người chơi nhìn thấy (AC-09.1 – AC-09.8)
 import type { Page } from '@playwright/test';
+import { JOBS, type JobLevel } from '../../core/src/config';
 import { seedQuestions } from './global-setup';
 import { closeSheet, coins, e2e, expect, expectTapTargets, openHouse, register, reopen, stamina, test, advance } from './helpers';
 
@@ -57,12 +58,14 @@ test('AC-09.2 sai câu 7: thất bại ngay, mất phí, hiện đáp án đúng
   expect(await coins(page)).toBe(xu - o.fee);
 });
 
-test('AC-09.3 đồng hồ 20 giây theo giờ server: quá hạn thì trả lời đúng cũng thất bại', async ({ page }) => {
+test('AC-09.3 đồng hồ cả đề theo giờ server: quá hạn thì trả lời đúng cũng thất bại', async ({ page }) => {
   await register(page);
   await openComputer(page);
+  const o = (await view(page)).job.offers[0];
+  const total = JOBS.levels[o.level as JobLevel].totalMs;
   await page.getByTestId('job-accept').first().click();
-  await expect(page.getByTestId('job-timer')).toContainText(/(19|20)s/);
-  await advance(21_000);
+  await expect(page.getByTestId('job-timer')).toContainText(/\d:\d\d/);
+  await advance(total + 1_000);
   await right(page).click();
   await expect(page.getByTestId('job-failed')).toBeVisible();
 });
@@ -85,10 +88,11 @@ test('AC-09.4 đóng mở máy tính giữ nguyên danh sách; đổi danh sách
 test('AC-09.6 tắt app giữa chừng: mở lại sau khi hết giờ thấy việc thất bại', async ({ page }) => {
   await register(page);
   await openComputer(page);
+  const o = (await view(page)).job.offers[0];
   await page.getByTestId('job-accept').first().click();
   await answerRight(page, 1);
   await expect(page.getByTestId('job-active')).toContainText('Câu 2/10');
-  await advance(25_000);
+  await advance(JOBS.levels[o.level as JobLevel].totalMs + 1_000);
   await reopen(page);
   await openComputer(page);
   await expect(page.getByTestId('job-failed')).toBeVisible();
