@@ -232,13 +232,13 @@ export type JobLevel = 1 | 2 | 3;
 export const JOBS = {
   offers: 3,
   questionsPerJob: 10,
-  answerMs: 20_000,
   perDay: 6,
   rerollFirst: 15,
+  /** totalMs: thời gian cho CẢ đề 10 câu (không tính riêng từng câu), hết giờ là thất bại. */
   levels: {
-    1: { label: 'Dễ', fee: [5, 10], reward: [100, 150] },
-    2: { label: 'Vừa', fee: [10, 20], reward: [150, 250] },
-    3: { label: 'Khó', fee: [20, 30], reward: [250, 350] },
-  } as Record<JobLevel, { label: string; fee: [number, number]; reward: [number, number] }>,
+    1: { label: 'Dễ', fee: [5, 10], reward: [100, 150], totalMs: 200_000 },
+    2: { label: 'Vừa', fee: [10, 20], reward: [150, 250], totalMs: 250_000 },
+    3: { label: 'Khó', fee: [20, 30], reward: [250, 350], totalMs: 300_000 },
+  } as Record<JobLevel, { label: string; fee: [number, number]; reward: [number, number]; totalMs: number }>,
   seenMemory: 120,
 };
