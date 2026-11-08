@@ -13,6 +13,7 @@ import { PhaserMap } from '@/game/PhaserMap';
 import type { Target } from '@/game/layout';
 import { ApiError, NetError, login, register, setToken } from '@/lib/api';
 import { useFarm } from '@/lib/farm';
+import { useLandscape } from '@/lib/useLandscape';
 import { BuildingPanel, EmptyBuildingPanel } from '@/panels/BuildingPanel';
 import { HousePanel } from '@/panels/HousePanel';
 import { JobDialog } from '@/panels/JobDialog';
@@ -76,7 +77,7 @@ export function AuthScreen({ onDone }: { onDone: () => void }) {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="register">
-            <TabsList className="grid h-auto w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 group-data-horizontal/tabs:h-auto">
               <TabsTrigger value="register" className="h-11">Chơi mới</TabsTrigger>
               <TabsTrigger value="login" className="h-11">Đăng nhập</TabsTrigger>
             </TabsList>
@@ -126,6 +127,7 @@ export function GameScreen() {
   const [jobs, setJobs] = useState(false);
   const [expand, setExpand] = useState(false);
   const [inv, setInv] = useState(false);
+  const landscape = useLandscape();
   useWakeLock();
 
   const openMarket = useCallback((tab: 'buy' | 'sell') => {
@@ -148,15 +150,15 @@ export function GameScreen() {
 
   return (
     <>
-      <header className="z-10 flex shrink-0 items-center gap-2 bg-emerald-900 px-3 py-2 text-white">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-sm font-semibold">
+      <header className="z-10 flex shrink-0 items-center gap-2 bg-emerald-900 px-3 py-2 text-white landscape:py-1 landscape:pl-[max(12px,env(safe-area-inset-left))]">
+        <div className="min-w-0 flex-1 landscape:flex landscape:items-center landscape:gap-6">
+          <div className="flex items-center gap-2 text-sm font-semibold landscape:shrink-0 lg:text-base">
             <span data-testid="hud-coins">🪙 {view?.coins.toLocaleString('vi-VN') ?? '—'}</span>
             <span className="opacity-80" data-testid="hud-season">
               {view ? `${view.seasonLabel} · ngày ${view.dayInSeason}/${SEASON_DAYS} · năm ${view.year}` : ''}
             </span>
           </div>
-          <div className="mt-1 flex items-center gap-2 text-xs">
+          <div className="mt-1 flex items-center gap-2 text-xs landscape:mt-0 landscape:w-full landscape:max-w-xs lg:text-sm">
             <span>⚡</span>
             <Progress value={view ? (view.stamina / view.staminaMax) * 100 : 0} className="h-2 flex-1 bg-emerald-950 [&>div]:bg-yellow-400" />
             <span data-testid="hud-stamina">
@@ -189,13 +191,13 @@ export function GameScreen() {
         {!view && online === 'ok' && <div className="absolute inset-0 flex items-center justify-center text-white">Đang tải nông trại…</div>}
       </main>
 
-      <Drawer open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
-        <DrawerContent data-testid="sheet">
-          <DrawerHeader className="pb-1">
+      <Drawer open={!!target} onOpenChange={(o) => !o && setTarget(null)} direction={landscape ? 'right' : 'bottom'}>
+        <DrawerContent data-testid="sheet" className="data-[vaul-drawer-direction=right]:w-[min(26rem,85vw)] data-[vaul-drawer-direction=right]:max-w-none">
+          <DrawerHeader className="pb-1 landscape:pt-[max(16px,env(safe-area-inset-top))]">
             <DrawerTitle>{target ? TITLE[target.kind] : ''}</DrawerTitle>
             <DrawerDescription className="sr-only">Việc làm được ở đây</DrawerDescription>
           </DrawerHeader>
-          <div className="scroll-area max-h-[65dvh] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          <div className="scroll-area max-h-[65dvh] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] landscape:max-h-none landscape:min-h-0 landscape:flex-1 landscape:pr-[max(16px,env(safe-area-inset-right))]">
             {target?.kind === 'plot' && <PlotPanel plotId={target.plotId} openMarket={openMarket} />}
             {target?.kind === 'house' && (
               <HousePanel

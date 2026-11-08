@@ -1,6 +1,6 @@
 // Dùng chung cho các spec e2e. Mỗi test: tự reset dữ liệu trước, tự kiểm trang không cuộn + không lỗi console sau.
 import { test as base, expect, type Page } from '@playwright/test';
-import { MAP_COLS } from '../../core/src/map';
+import { MAP_COLS, MAP_ROWS } from '../../core/src/map';
 
 export const API = 'http://127.0.0.1:45330';
 export const ADMIN_TOKEN = 'admin-e2e-token-admin-e2e-token-admin-e2e-token';
@@ -58,13 +58,26 @@ export async function register(page: Page, name = 'Nam', password = 'matkhau1') 
   return { username, password };
 }
 
-/** Chạm vào giữa một ô bản đồ (toạ độ ô). Bản đồ 12×22 vừa khung Pixel 7 nên không cần cuộn camera. */
+/** Ô (x, y) của bản đồ → điểm giữa ô trên màn. Màn dọc: 12×22 vừa khung Pixel 7, không cần cuộn camera.
+ *  Màn ngang: vẽ chuyển vị 22×12, co vừa khung và đặt giữa (xem FarmScene). */
+export async function tilePoint(page: Page, x: number, y: number) {
+  const box = (await page.getByTestId('farm-map').locator('canvas').boundingBox())!;
+  if (box.width <= box.height) {
+    const t = box.width / MAP_COLS;
+    return { x: box.x + (x + 0.5) * t, y: box.y + (y + 0.5) * t, tile: t };
+  }
+  const t = Math.min(box.width / MAP_ROWS, box.height / MAP_COLS);
+  const ox = (box.width - t * MAP_ROWS) / 2;
+  const oy = (box.height - t * MAP_COLS) / 2;
+  return { x: box.x + ox + (y + 0.5) * t, y: box.y + oy + (x + 0.5) * t, tile: t };
+}
+
+/** Chạm vào giữa một ô bản đồ (toạ độ ô). */
 export async function tapTile(page: Page, x: number, y: number) {
   // chạm lúc hộp thoại còn đang đóng thì bị nuốt mất: chờ đóng hẳn
   await expect(page.locator('[role=dialog]')).toHaveCount(0);
-  const box = (await page.getByTestId('farm-map').locator('canvas').boundingBox())!;
-  const t = box.width / MAP_COLS;
-  await page.touchscreen.tap(box.x + (x + 0.5) * t, box.y + (y + 0.5) * t);
+  const p = await tilePoint(page, x, y);
+  await page.touchscreen.tap(p.x, p.y);
 }
 
 export const coins = async (page: Page) => Number((await page.getByTestId('hud-coins').textContent())!.replace(/\D/g, ''));
